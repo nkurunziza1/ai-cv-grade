@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -42,83 +41,38 @@ interface Application {
   score?: number;
   analysis?: string;
   submittedAt: string;
+  // AI fields
+  skillsMatch?: string[];
+  experienceYears?: number;
+  status?: string;
+  summary?: string;
+  appliedDate?: string;
 }
 
-// Dummy graded scores data
-const dummyGradedScores = [
-  {
-    id: "1",
-    name: "John Smith",
-    email: "john.smith@email.com",
-    score: 92,
-    skillsMatch: ["React", "JavaScript", "Node.js"],
-    experienceYears: 5,
-    appliedDate: "2024-01-15",
-    status: "Excellent",
-  },
-  {
-    id: "2",
-    name: "Sarah Johnson",
-    email: "sarah.j@email.com",
-    score: 87,
-    skillsMatch: ["Python", "Machine Learning", "SQL"],
-    experienceYears: 4,
-    appliedDate: "2024-01-14",
-    status: "Very Good",
-  },
-  {
-    id: "3",
-    name: "Michael Chen",
-    email: "m.chen@email.com",
-    score: 76,
-    skillsMatch: ["Java", "Spring Boot", "AWS"],
-    experienceYears: 3,
-    appliedDate: "2024-01-13",
-    status: "Good",
-  },
-  {
-    id: "4",
-    name: "Emily Davis",
-    email: "emily.davis@email.com",
-    score: 68,
-    skillsMatch: ["HTML", "CSS", "JavaScript"],
-    experienceYears: 2,
-    appliedDate: "2024-01-12",
-    status: "Fair",
-  },
-  {
-    id: "5",
-    name: "Alex Rodriguez",
-    email: "alex.r@email.com",
-    score: 54,
-    skillsMatch: ["PHP", "MySQL"],
-    experienceYears: 1,
-    appliedDate: "2024-01-11",
-    status: "Needs Improvement",
-  },
-  {
-    id: "6",
-    name: "Lisa Thompson",
-    email: "lisa.t@email.com",
-    score: 83,
-    skillsMatch: ["TypeScript", "React", "GraphQL"],
-    experienceYears: 4,
-    appliedDate: "2024-01-10",
-    status: "Very Good",
-  },
-];
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyBkIAgT8SBMwpitI-rOM-jrBLnCn2KTxf8';
 
 const JobDetails = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [job, setJob] = useState<Job | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [graded, setGraded] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [sorted, setSorted] = useState(false);
+  const [deadlineReached, setDeadlineReached] = useState(false);
+  const [selectedApplicant, setSelectedApplicant] = useState<Application | null>(null);
 
   useEffect(() => {
     const jobs = JSON.parse(localStorage.getItem("jobs") || "[]");
     const foundJob = jobs.find((j: Job) => j.id === id);
     setJob(foundJob || null);
-
+    // Check if deadline reached (assume job.createdAt + 7 days for demo)
+    if (foundJob) {
+      const deadline = new Date(foundJob.createdAt);
+      deadline.setDate(deadline.getDate() + 7);
+      setDeadlineReached(new Date() >= deadline);
+    }
     if (user?.isAdmin) {
       const allApplications = JSON.parse(
         localStorage.getItem("applications") || "[]"
@@ -127,6 +81,118 @@ const JobDetails = () => {
         (app: Application) => app.jobId === id
       );
       setApplications(jobApplications);
+      // Load sorted/graded list from localStorage if exists
+      const gradedKey = `graded_${id}`;
+      const gradedList = JSON.parse(localStorage.getItem(gradedKey) || "null");
+      if (gradedList && Array.isArray(gradedList)) {
+        setGraded(gradedList);
+        setSorted(true);
+      } else {
+        setGraded([]);
+        setSorted(false);
+      }
+    } else if (user) {
+      // For applicants, find their own application
+      const allApplications = JSON.parse(localStorage.getItem("applications") || "[]");
+      const myApp = allApplications.find((app: Application) => app.jobId === id && app.applicantEmail === user.email);
+      setSelectedApplicant(myApp || null);
+      // Check if sorted
+      const gradedKey = `graded_${id}`;
+      const gradedList = JSON.parse(localStorage.getItem(gradedKey) || "null");
+      setSorted(!!gradedList && Array.isArray(gradedList) && gradedList.length > 0);
+    }
+  }, [id, user]);
+
+  useEffect(() => {
+    if (user?.isAdmin && applications.length > 0 && deadlineReached) {
+      fetchAndGradeApplications();
+    }
+    // eslint-disable-next-line
+  }, [applications.length, user, deadlineReached]);
+
+  // Helper to summarize document types for prompt
+  const summarizeDocuments = (documents: {fileName: string}[] = []) => {
+    if (!documents.length) return "No documents provided.";
+    // Try to classify by filename
+    const sorted = [
+      ...documents.filter(doc => /cv|resume/i.test(doc.fileName)),
+      ...documents.filter(doc => /cover/i.test(doc.fileName)),
+      ...documents.filter(doc => /cert/i.test(doc.fileName)),
+      ...documents.filter(doc => !/cv|resume|cover|cert/i.test(doc.fileName)),
+    ];
+    return sorted.map(doc => `${doc.fileName}`).join("; ");
+  };
+
+  const aiPrompt = (job: Job, app: Application) => `You are an AI assistant helping a company evaluate applicants for a job.\n\nHere is the job description:\nTitle: ${job.title}\nCompany: ${job.company}\nDescription: ${job.description}\nRequirements: ${job.requirements}\nSkills: ${job.skills.join(", ")}\nExperience Level: ${job.experienceLevel}\n\nThe applicant submitted these files: ${summarizeDocuments((app as any).documents)}\n\nEvaluate the applicant based on:\n- Required experience\n- Relevant skills\n- Education\n- Certifications\n- Cover letter relevance (if present)\n\nGive a score from 0 to 100 and explain why.\n\nReturn a JSON object: {score: number, skillsMatch: string[], experienceYears: number, status: string, summary: string}`;
+
+  // Store sorted/graded applicants in localStorage
+  const fetchAndGradeApplications = async () => {
+    setLoading(true);
+    const results: Application[] = [];
+    for (const app of applications) {
+      const prompt = aiPrompt(job!, app);
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    { text: prompt }
+                  ]
+                }
+              ]
+            })
+          }
+        );
+        const data = await res.json();
+        const content = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        let parsed;
+        try {
+          parsed = JSON.parse(content);
+        } catch {
+          const match = content.match(/\{[\s\S]*\}/);
+          parsed = match ? JSON.parse(match[0]) : null;
+        }
+        if (parsed) {
+          results.push({
+            ...app,
+            ...parsed,
+            appliedDate: app.submittedAt
+          });
+        }
+      } catch (e) {
+        results.push({
+          ...app,
+          score: 0,
+          skillsMatch: [],
+          experienceYears: 0,
+          status: "Unknown",
+          summary: "Could not grade."
+        });
+      }
+    }
+    // Sort by AI score descending
+    results.sort((a, b) => (b.score || 0) - (a.score || 0));
+    setGraded(results);
+    setSorted(true);
+    setLoading(false);
+    // Store graded list in localStorage
+    const gradedKey = `graded_${id}`;
+    localStorage.setItem(gradedKey, JSON.stringify(results));
+  };
+
+  // On mount or when job/applications change, load graded list from localStorage if exists
+  useEffect(() => {
+    if (user?.isAdmin) {
+      const gradedList = localStorage.getItem(`graded_applicants_${id}`);
+      if (gradedList) {
+        setGraded(JSON.parse(gradedList));
+        setSorted(true);
+      }
     }
   }, [id, user]);
 
@@ -144,6 +210,16 @@ const JobDetails = () => {
     if (score >= 60) return "🥉";
     if (score >= 50) return "⭐";
     return "📋";
+  };
+
+  // Handler for admin to view applicant details (redirect to details page)
+  const handleViewApplicant = (app: Application) => {
+    navigate(`/applicant/${app.id}`);
+  };
+
+  // Handler for applicant to view their own application
+  const handleViewSelf = (app: Application) => {
+    navigate(`/application/${app.id}`);
   };
 
   if (!job) {
@@ -343,10 +419,11 @@ const JobDetails = () => {
                   Recent Applications
                 </h3>
                 <div className="space-y-4">
-                  {applications.slice(0, 5).map((app) => (
+                  {(sorted && graded.length > 0 ? graded.slice(0, 5) : applications.slice(0, 5)).map((app) => (
                     <div
                       key={app.id}
-                      className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow"
+                      className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => handleViewApplicant(app)}
                     >
                       <div className="flex justify-between items-start mb-3">
                         <p className="font-semibold text-gray-900">
@@ -370,23 +447,30 @@ const JobDetails = () => {
                         {app.applicantEmail}
                       </p>
                       <p className="text-xs text-gray-500">
-                        Applied on{" "}
-                        {new Date(app.submittedAt).toLocaleDateString()}
+                        Applied on {new Date(app.submittedAt || app.appliedDate).toLocaleDateString()}
                       </p>
                     </div>
                   ))}
-                  {applications.length > 5 && (
+                  {(sorted && graded.length > 5) || (!sorted && applications.length > 5) ? (
                     <div className="text-center">
                       <p className="text-sm text-gray-500">
-                        +{applications.length - 5} more applications
+                        +{(sorted ? graded.length : applications.length) - 5} more applications
                       </p>
                     </div>
+                  ) : null}
+                </div>
+                <div className="mt-4 text-xs text-gray-500">
+                  {sorted ? (
+                    <span className="font-semibold text-purple-700">Sorted & graded by AI.</span>
+                  ) : (
+                    <span>Not yet sorted. You can sort & grade at any time.</span>
                   )}
                 </div>
               </div>
             )}
           </div>
         </div>
+        {/* AI Graded Candidates Section */}
         {user?.isAdmin && (
           <div className="bg-gradient-to-r mt-20 from-purple-50 to-indigo-50 p-6 rounded-2xl border border-purple-200">
             <div className="flex items-center mb-6">
@@ -395,76 +479,135 @@ const JobDetails = () => {
                 Candidate Scores & Rankings
               </h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {dummyGradedScores.map((candidate) => (
-                <div
-                  key={candidate.id}
-                  className="bg-white p-5 rounded-xl shadow-sm border hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="bg-gray-100 p-2 rounded-full">
-                        <User className="h-4 w-4 text-gray-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">
-                          {candidate.name}
-                        </h4>
-                        <p className="text-sm text-gray-500">
-                          {candidate.email}
-                        </p>
-                      </div>
+            {(deadlineReached || sorted) ? (
+              loading ? (
+                <div className="text-center py-8 text-lg text-gray-600">Grading candidates with AI...</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {graded.length === 0 ? (
+                    <div className="col-span-2 text-center text-gray-500 py-8">
+                      No applications have been graded yet.
                     </div>
-                    <div className="text-right">
+                  ) : (
+                    graded.map((candidate) => (
                       <div
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getScoreColor(
-                          candidate.score
-                        )}`}
+                        key={candidate.id}
+                        className="bg-white p-5 rounded-xl shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => handleViewApplicant(candidate)}
                       >
-                        <span className="mr-1">
-                          {getScoreIcon(candidate.score)}
-                        </span>
-                        {candidate.score}%
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-gray-100 p-2 rounded-full">
+                              <User className="h-4 w-4 text-gray-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900">
+                                {candidate.applicantName}
+                              </h4>
+                              <p className="text-sm text-gray-500">
+                                {candidate.applicantEmail}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getScoreColor(
+                                candidate.score
+                              )}`}
+                            >
+                              <span className="mr-1">
+                                {getScoreIcon(candidate.score)}
+                              </span>
+                              {candidate.score}%
+                            </div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Experience:</span>
+                            <span className="font-medium">
+                              {candidate.experienceYears} years
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Status:</span>
+                            <span className="font-medium text-gray-900">
+                              {candidate.status}
+                            </span>
+                          </div>
+                          <div className="text-sm">
+                            <span className="text-gray-600">Skills Match:</span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {candidate.skillsMatch?.map((skill: string, index: number) => (
+                                <span
+                                  key={index}
+                                  className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs"
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Applied:</span>
+                            <span className="text-gray-500">
+                              {new Date(candidate.appliedDate!).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {candidate.summary && (
+                            <div className="bg-gray-50 p-2 rounded mt-2 text-xs text-gray-700">
+                              {candidate.summary}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Experience:</span>
-                      <span className="font-medium">
-                        {candidate.experienceYears} years
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Status:</span>
-                      <span className="font-medium text-gray-900">
-                        {candidate.status}
-                      </span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-gray-600">Skills Match:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {candidate.skillsMatch.map((skill, index) => (
-                          <span
-                            key={index}
-                            className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs"
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Applied:</span>
-                      <span className="text-gray-500">
-                        {new Date(candidate.appliedDate).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
+                    ))
+                  )}
                 </div>
-              ))}
+              )
+            ) : (
+              <div className="text-center py-8 text-lg text-gray-600">
+                <div className="mb-4">The application deadline has not been reached yet.</div>
+                <Button
+                  onClick={fetchAndGradeApplications}
+                  disabled={loading || applications.length === 0}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3"
+                >
+                  {loading ? "Sorting..." : "Sort & Grade Now"}
+                </Button>
+                <div className="mt-4 text-sm text-gray-500">
+                  As an admin, you can sort and grade applications at any time.<br/>
+                  <span className="font-semibold text-purple-700">Guidance:</span> Wait for the deadline or click the button to sort and grade applicants using AI. The list will be sorted by score automatically.
+                </div>
+              </div>
+            )}
+            <div className="mt-4 text-xs text-gray-500">
+              {sorted ? (
+                <span className="font-semibold text-purple-700">Sorted & graded by AI. You can re-sort at any time.</span>
+              ) : (
+                <span>Not yet sorted. You can sort & grade at any time.</span>
+              )}
             </div>
+          </div>
+        )}
+        {/* Applicant's own application status (if not admin) */}
+        {!user?.isAdmin && user && selectedApplicant && (
+          <div className="bg-white mt-12 p-6 rounded-2xl shadow-lg border-0 max-w-xl mx-auto">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Your Application Status</h3>
+            <div className="mb-2">
+              <span className="font-semibold">Name:</span> {selectedApplicant.applicantName}
+            </div>
+            <div className="mb-2">
+              <span className="font-semibold">Email:</span> {selectedApplicant.applicantEmail}
+            </div>
+            <div className="mb-2">
+              <span className="font-semibold">Applied on:</span> {new Date(selectedApplicant.submittedAt).toLocaleDateString()}
+            </div>
+            {sorted ? (
+              <div className="mt-4 text-green-700 font-semibold">Applications have been sorted and graded. You can view your status in the results.</div>
+            ) : (
+              <div className="mt-4 text-blue-700 font-semibold">Applications have not been sorted yet. Please wait for the deadline or for the admin to sort and grade applications.</div>
+            )}
           </div>
         )}
       </div>
@@ -473,3 +616,5 @@ const JobDetails = () => {
 };
 
 export default JobDetails;
+
+

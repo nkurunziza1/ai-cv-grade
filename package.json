@@ -1,5 +1,13 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "ai-cv-grade",
+  "description": "AI CV Grade is a web application that allows users to upload their CVs and receive feedback on how to improve them using AI.",
+  "keywords": [
+    "AI",
+    "CV",
+    "Grade",
+    "Feedback",
+    "Web Application"
+  ],
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -67,7 +75,7 @@
     "@types/node": "^22.5.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react-swc": "^3.5.0",
+    "@vitejs/plugin-react-swc": "^3.10.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",

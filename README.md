@@ -1,73 +1,84 @@
-# Welcome to your Lovable project
+# AI CV Grading & Sorting Platform
 
-## Project info
+This project is an AI-powered job application platform that allows companies to collect, grade, and sort applicants using Gemini AI. It provides a modern, user-friendly interface for both applicants and administrators, with persistent state and detailed applicant review.
 
-**URL**: https://lovable.dev/projects/6814f1fb-3557-435a-9f11-5f47f1019eb4
+## Features
 
-## How can I edit this code?
+- **AI Grading & Sorting:** Uses Gemini AI to evaluate and score applicants based on their submitted documents and job requirements.
+- **Admin Controls:** Admins can manually trigger AI sorting at any time before the deadline, or let it run automatically after the deadline.
+- **Applicant Review:** Dedicated details page for each applicant, including PDF previews of uploaded documents and full AI grading analysis.
+- **Persistent State:** All applicant data and grading results are stored and retrieved from localStorage.
+- **Modern UI:** Built with React, TypeScript, Tailwind CSS, and shadcn-ui for a clean, responsive experience.
+- **File Upload Guidance:** Applicants are guided to name their files for optimal AI recognition (e.g., include "cv", "resume", "cover", or "cert" in filenames).
 
-There are several ways of editing your application.
+## Technologies Used
 
-**Use Lovable**
+- [React](https://react.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [shadcn-ui](https://ui.shadcn.com/)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6814f1fb-3557-435a-9f11-5f47f1019eb4) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
+- Node.js (v18 or later recommended)
+- npm (v9 or later recommended)
 
-**Use your preferred IDE**
+### Installation
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+```bash
+# Clone the repository
 git clone <YOUR_GIT_URL>
+cd ai-cv-grade
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Install dependencies
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Running the App
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at [http://localhost:5173](http://localhost:5173) by default.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Environment Variables
 
-**Use GitHub Codespaces**
+You must provide a Gemini API key for AI grading. Create a `.env` file in the project root:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
+```
 
-## What technologies are used for this project?
+## Usage
 
-This project is built with:
+- **Admins:**
+  - View job details, see all applicants, and trigger AI grading/sorting at any time.
+  - Review AI-graded candidates, see detailed analysis, and preview applicant documents.
+- **Applicants:**
+  - Apply for jobs by uploading up to 2 PDF documents (max 2MB each) and/or providing a text CV.
+  - Receive guidance on naming files for best AI recognition.
+  - View their application status and details after submission.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## File Naming Guidance
 
-## How can I deploy this project?
+For best AI grading results, name your files with keywords like `cv`, `resume`, `cover`, or `cert` (e.g., `john_cv.pdf`, `cover_letter.pdf`, `certificates.pdf`).
 
-Simply open [Lovable](https://lovable.dev/projects/6814f1fb-3557-435a-9f11-5f47f1019eb4) and click on Share -> Publish.
+## Project Structure
 
-## Can I connect a custom domain to my Lovable project?
+- `src/pages/` — Main pages (JobDetails, ApplyJob, ApplicantDetails, etc.)
+- `src/components/` — Reusable UI components
+- `src/contexts/` — Context providers (e.g., Auth)
+- `src/hooks/` — Custom React hooks
+- `src/lib/` — Utility functions
 
-Yes, you can!
+## Customization
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- Update branding, colors, and UI in `tailwind.config.ts` and component files.
+- Replace the Open Graph and Twitter images in `index.html` as needed.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## License
+
+This project is provided as-is for educational and demonstration purposes. You may modify and use it for your own needs.

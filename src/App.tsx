@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +12,7 @@ import JobDetails from "./pages/JobDetails";
 import ApplyJob from "./pages/ApplyJob";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ApplicantDetails from "./pages/ApplicantDetails";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +37,7 @@ const App = () => (
             />
             <Route path="/job/:id" element={<JobDetails />} />
             <Route path="/apply/:id" element={<ApplyJob />} />
+            <Route path="/applicant/:id" element={<ApplicantDetails />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -210,241 +210,247 @@ const AdminDashboard = () => {
         </div>
 
         {/* Header with Create Button */}
-        <div className="flex justify-between items-center mb-8">
+    <div className="flex justify-between items-center mb-8 ">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Job Postings</h1>
             <p className="text-gray-600 mt-1">
               Manage and create job opportunities
             </p>
           </div>
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 rounded-xl px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                Create New Job
-              </Button>
+          <div>
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+              <DialogTrigger asChild>
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 rounded-xl px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Create New Job
+                </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl bg-white rounded-2xl border-0 shadow-2xl">
-              <DialogHeader className="pb-6">
-                <DialogTitle className="text-2xl font-bold text-gray-900">
-                  Create New Job Posting
-                </DialogTitle>
-                <DialogDescription className="text-gray-600">
-                  Fill in the details to create an attractive job posting that
-                  will attract top talent
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleCreateJob} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] bg-white rounded-2xl border-0 shadow-2xl overflow-hidden">
+              <div className="max-h-[85vh] overflow-y-auto">
+                <DialogHeader className="pb-6 px-6 pt-6">
+                  <DialogTitle className="text-2xl font-bold text-gray-900">
+                    Create New Job Posting
+                  </DialogTitle>
+                  <DialogDescription className="text-gray-600">
+                    Fill in the details to create an attractive job posting that
+                    will attract top talent
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <form onSubmit={handleCreateJob} className="space-y-6 px-6 pb-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="title"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        Job Title
+                      </Label>
+                      <Input
+                        id="title"
+                        value={newJob.title}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, title: e.target.value })
+                        }
+                        required
+                        className="h-12  border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., Senior React Developer"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="company"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        Company
+                      </Label>
+                      <Input
+                        id="company"
+                        value={newJob.company}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, company: e.target.value })
+                        }
+                        required
+                        className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., Tech Innovations Inc."
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label
-                      htmlFor="title"
+                      htmlFor="description"
                       className="text-sm font-semibold text-gray-700"
                     >
-                      Job Title
+                      Job Description
                     </Label>
-                    <Input
-                      id="title"
-                      value={newJob.title}
+                    <Textarea
+                      id="description"
+                      value={newJob.description}
                       onChange={(e) =>
-                        setNewJob({ ...newJob, title: e.target.value })
+                        setNewJob({ ...newJob, description: e.target.value })
                       }
                       required
-                      className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., Senior React Developer"
+                      className="min-h-[100px] border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      placeholder="Describe the role, responsibilities, and what makes this opportunity exciting..."
                     />
                   </div>
+
                   <div className="space-y-2">
                     <Label
-                      htmlFor="company"
+                      htmlFor="requirements"
                       className="text-sm font-semibold text-gray-700"
                     >
-                      Company
+                      Requirements & Qualifications
                     </Label>
-                    <Input
-                      id="company"
-                      value={newJob.company}
+                    <Textarea
+                      id="requirements"
+                      value={newJob.requirements}
                       onChange={(e) =>
-                        setNewJob({ ...newJob, company: e.target.value })
+                        setNewJob({ ...newJob, requirements: e.target.value })
                       }
                       required
-                      className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., Tech Innovations Inc."
+                      className="min-h-[100px] border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      placeholder="List the required skills, experience, and qualifications..."
                     />
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="description"
-                    className="text-sm font-semibold text-gray-700"
-                  >
-                    Job Description
-                  </Label>
-                  <Textarea
-                    id="description"
-                    value={newJob.description}
-                    onChange={(e) =>
-                      setNewJob({ ...newJob, description: e.target.value })
-                    }
-                    required
-                    className="min-h-[120px] border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    placeholder="Describe the role, responsibilities, and what makes this opportunity exciting..."
-                  />
-                </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="skills"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        Skills & Technologies
+                      </Label>
+                      <Input
+                        id="skills"
+                        value={newJob.skills}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, skills: e.target.value })
+                        }
+                        placeholder="React, TypeScript, Node.js, MongoDB"
+                        className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500">
+                        Separate skills with commas
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="experienceLevel"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        Experience Level
+                      </Label>
+                      <select
+                        id="experienceLevel"
+                        value={newJob.experienceLevel}
+                        onChange={(e) =>
+                          setNewJob({
+                            ...newJob,
+                            experienceLevel: e.target.value,
+                          })
+                        }
+                        className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="Entry-level">Entry-level</option>
+                        <option value="Mid-level">Mid-level</option>
+                        <option value="Senior">Senior</option>
+                        <option value="Lead">Lead</option>
+                      </select>
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="requirements"
-                    className="text-sm font-semibold text-gray-700"
-                  >
-                    Requirements & Qualifications
-                  </Label>
-                  <Textarea
-                    id="requirements"
-                    value={newJob.requirements}
-                    onChange={(e) =>
-                      setNewJob({ ...newJob, requirements: e.target.value })
-                    }
-                    required
-                    className="min-h-[120px] border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    placeholder="List the required skills, experience, and qualifications..."
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label
-                      htmlFor="skills"
+                      htmlFor="applicationDeadline"
                       className="text-sm font-semibold text-gray-700"
                     >
-                      Skills & Technologies
+                      Application Deadline
                     </Label>
                     <Input
-                      id="skills"
-                      value={newJob.skills}
-                      onChange={(e) =>
-                        setNewJob({ ...newJob, skills: e.target.value })
-                      }
-                      placeholder="React, TypeScript, Node.js, MongoDB"
-                      className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Separate skills with commas
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="experienceLevel"
-                      className="text-sm font-semibold text-gray-700"
-                    >
-                      Experience Level
-                    </Label>
-                    <select
-                      id="experienceLevel"
-                      value={newJob.experienceLevel}
+                      id="applicationDeadline"
+                      type="date"
+                      value={newJob.applicationDeadline}
                       onChange={(e) =>
                         setNewJob({
                           ...newJob,
-                          experienceLevel: e.target.value,
+                          applicationDeadline: e.target.value,
                         })
                       }
-                      className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="Entry-level">Entry-level</option>
-                      <option value="Mid-level">Mid-level</option>
-                      <option value="Senior">Senior</option>
-                      <option value="Lead">Lead</option>
-                    </select>
+                      className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent max-w-xs"
+                      min={new Date().toISOString().split("T")[0]}
+                    />
+                    <p className="text-xs text-gray-500">
+                      AI grading will start automatically after this deadline
+                    </p>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="applicationDeadline"
-                    className="text-sm font-semibold text-gray-700"
-                  >
-                    Application Deadline
-                  </Label>
-                  <Input
-                    id="applicationDeadline"
-                    type="date"
-                    value={newJob.applicationDeadline}
-                    onChange={(e) =>
-                      setNewJob({
-                        ...newJob,
-                        applicationDeadline: e.target.value,
-                      })
-                    }
-                    className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min={new Date().toISOString().split("T")[0]}
-                  />
-                  <p className="text-xs text-gray-500">
-                    AI grading will start automatically after this deadline
-                  </p>
-                </div>
-
-                {/* AI Grading Toggle */}
-                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-6 rounded-xl border border-blue-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="bg-blue-100 p-2 rounded-lg">
-                        <Zap className="h-5 w-5 text-blue-600" />
+                  {/* AI Grading Toggle */}
+                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-xl border border-blue-100">
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                      <div className="flex items-center space-x-3 min-w-0 flex-1">
+                        <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0">
+                          <Zap className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-gray-900">
+                            AI-Powered Grading
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            Automatically evaluate and score applications using AI
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">
-                          AI-Powered Grading
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          Automatically evaluate and score applications using AI
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm font-medium text-gray-700">
-                        {newJob.aiGrading ? "Enabled" : "Manual"}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setNewJob({ ...newJob, aiGrading: !newJob.aiGrading })
-                        }
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                          newJob.aiGrading ? "bg-blue-600" : "bg-gray-200"
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            newJob.aiGrading ? "translate-x-6" : "translate-x-1"
+                      <div className="flex items-center space-x-3 flex-shrink-0">
+                        <span className="text-sm font-medium text-gray-700">
+                          {newJob.aiGrading ? "Enabled" : "Manual"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setNewJob({ ...newJob, aiGrading: !newJob.aiGrading })
+                          }
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                            newJob.aiGrading ? "bg-blue-600" : "bg-gray-200"
                           }`}
-                        />
-                      </button>
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              newJob.aiGrading ? "translate-x-6" : "translate-x-1"
+                            }`}
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowCreateDialog(false)}
-                    className="px-6 py-3 border-gray-200 hover:bg-gray-50 rounded-xl"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 rounded-xl px-8 py-3 font-semibold shadow-lg hover:shadow-xl transition-all"
-                  >
-                    Create Job Posting
-                  </Button>
-                </div>
-              </form>
+                  <div className="flex justify-end space-x-4 pt-6">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowCreateDialog(false)}
+                      className="px-6 py-3 border-gray-200 hover:bg-gray-50 rounded-xl"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 rounded-xl px-8 py-3 font-semibold shadow-lg hover:shadow-xl transition-all"
+                    >
+                      Create Job Posting
+                    </Button>
+                  </div>
+                </form>
+              </div>
             </DialogContent>
           </Dialog>
+          </div>
+      
         </div>
 
         {/* Jobs Grid */}
