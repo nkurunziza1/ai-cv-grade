@@ -1,13 +1,10 @@
-
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Upload, Loader2 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, Send, FileText, User, Mail, Building } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface Job {
   id: string;
@@ -25,141 +22,50 @@ const ApplyJob = () => {
   const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    cvText: '',
-    geminiApiKey: ''
+    name: "",
+    email: "",
+    cvText: "",
   });
 
   useEffect(() => {
-    const jobs = JSON.parse(localStorage.getItem('jobs') || '[]');
+    const jobs = JSON.parse(localStorage.getItem("jobs") || "[]");
     const foundJob = jobs.find((j: Job) => j.id === id);
     setJob(foundJob || null);
   }, [id]);
 
-  const analyzeCV = async (cvText: string, jobRequirements: string, jobSkills: string[], apiKey: string) => {
-    try {
-      const prompt = `
-        Please analyze this CV against the job requirements and provide a detailed assessment:
-
-        JOB REQUIREMENTS:
-        ${jobRequirements}
-
-        REQUIRED SKILLS:
-        ${jobSkills.join(', ')}
-
-        CV CONTENT:
-        ${cvText}
-
-        Please provide:
-        1. A compatibility score (0-100)
-        2. Detailed analysis of strengths and weaknesses
-        3. Missing skills or qualifications
-        4. Recommendations for improvement
-
-        Format your response as JSON with the following structure:
-        {
-          "score": <number>,
-          "analysis": "<detailed analysis>",
-          "strengths": ["<strength1>", "<strength2>"],
-          "weaknesses": ["<weakness1>", "<weakness2>"],
-          "missingSkills": ["<skill1>", "<skill2>"],
-          "recommendations": ["<recommendation1>", "<recommendation2>"]
-        }
-      `;
-
-      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + apiKey, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }]
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to analyze CV with Gemini API');
-      }
-
-      const data = await response.json();
-      const analysisText = data.candidates[0].content.parts[0].text;
-      
-      try {
-        const cleanedText = analysisText.replace(/```json\n?/, '').replace(/```\n?$/, '');
-        return JSON.parse(cleanedText);
-      } catch (parseError) {
-        console.error('Failed to parse Gemini response as JSON:', parseError);
-        return {
-          score: 50,
-          analysis: analysisText,
-          strengths: [],
-          weaknesses: [],
-          missingSkills: [],
-          recommendations: []
-        };
-      }
-    } catch (error) {
-      console.error('Error analyzing CV:', error);
-      throw error;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.geminiApiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please enter your Gemini API key to analyze the CV",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      // Analyze CV with Gemini
-      const analysis = await analyzeCV(
-        formData.cvText,
-        job!.requirements,
-        job!.skills,
-        formData.geminiApiKey
-      );
-
-      // Create application
+      // Create application without AI analysis
       const application = {
         id: Date.now().toString(),
         jobId: id!,
         applicantName: formData.name,
         applicantEmail: formData.email,
         cvText: formData.cvText,
-        score: analysis.score,
-        analysis: JSON.stringify(analysis),
-        submittedAt: new Date().toISOString()
+        submittedAt: new Date().toISOString(),
       };
 
       // Store application
-      const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+      const applications = JSON.parse(
+        localStorage.getItem("applications") || "[]"
+      );
       applications.push(application);
-      localStorage.setItem('applications', JSON.stringify(applications));
+      localStorage.setItem("applications", JSON.stringify(applications));
 
       toast({
         title: "Application submitted successfully!",
-        description: `Your CV scored ${analysis.score}% compatibility with this role`,
+        description: "We'll review your application and get back to you soon.",
       });
 
       navigate(`/job/${id}`);
     } catch (error) {
-      console.error('Error submitting application:', error);
+      console.error("Error submitting application:", error);
       toast({
         title: "Error submitting application",
-        description: "Failed to analyze CV. Please check your API key and try again.",
+        description: "Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -169,10 +75,15 @@ const ApplyJob = () => {
 
   if (!job) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <h1 className="text-large font-bold mb-4">Job Not Found</h1>
-          <Button asChild>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="text-center bg-white p-8 rounded-2xl shadow-lg border-0">
+          <h1 className="text-2xl font-bold mb-4 text-gray-900">
+            Job Not Found
+          </h1>
+          <Button
+            asChild
+            className="bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-lg"
+          >
             <Link to="/">Go Home</Link>
           </Button>
         </div>
@@ -181,145 +92,229 @@ const ApplyJob = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Header */}
-      <div className="border-b bg-card">
+      <div className="bg-white/80 backdrop-blur-md shadow-sm border-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
-            <Button variant="ghost" size="sm" asChild className="mr-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="mr-4 text-gray-600 hover:bg-gray-100"
+            >
               <Link to={`/job/${id}`}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Job
               </Link>
             </Button>
-            <h1 className="text-large font-bold text-primary">Apply for Job</h1>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+              Apply for Position
+            </h1>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Application Form */}
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-medium">Submit Your Application</CardTitle>
-                <CardDescription className="text-small">
-                  Fill in your details and paste your CV text for AI analysis
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name" className="text-small">Full Name</Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        required
-                        className="text-small"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-small">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
-                        required
-                        className="text-small"
-                      />
-                    </div>
-                  </div>
+            <div className="bg-white p-8 rounded-2xl shadow-lg border-0">
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Submit Your Application
+                </h2>
+                <p className="text-gray-600">
+                  Tell us about yourself and why you're perfect for this role
+                </p>
+              </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="geminiApiKey" className="text-small">Gemini API Key</Label>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-gray-400" />
+                    </div>
                     <Input
-                      id="geminiApiKey"
-                      type="password"
-                      value={formData.geminiApiKey}
-                      onChange={(e) => setFormData({...formData, geminiApiKey: e.target.value})}
-                      placeholder="Enter your Gemini API key for CV analysis"
+                      placeholder="Full Name"
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
                       required
-                      className="text-small"
-                    />
-                    <p className="text-small text-muted-foreground">
-                      Your API key is used only for this analysis and is not stored
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="cvText" className="text-small">
-                      CV Content
-                      <span className="text-muted-foreground ml-2">(paste your CV text here)</span>
-                    </Label>
-                    <Textarea
-                      id="cvText"
-                      value={formData.cvText}
-                      onChange={(e) => setFormData({...formData, cvText: e.target.value})}
-                      placeholder="Paste your CV content here..."
-                      required
-                      className="text-small min-h-[300px]"
+                      className="h-12 pl-10 border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition-colors"
                     />
                   </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <Input
+                      type="email"
+                      placeholder="Email Address"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      required
+                      className="h-12 pl-10 border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition-colors"
+                    />
+                  </div>
+                </div>
 
-                  <Button type="submit" size="lg" disabled={isLoading} className="w-full">
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Analyzing CV...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Submit Application
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+                <div className="relative">
+                  <div className="absolute top-3 left-3 pointer-events-none">
+                    <FileText className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <Textarea
+                    placeholder="Paste your CV content here or describe your experience, skills, and qualifications..."
+                    value={formData.cvText}
+                    onChange={(e) =>
+                      setFormData({ ...formData, cvText: e.target.value })
+                    }
+                    required
+                    className="min-h-[300px] pl-10 pt-3 border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition-colors resize-none"
+                  />
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-blue-100 p-1 rounded-full mt-0.5">
+                      <svg
+                        className="h-4 w-4 text-blue-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-blue-900 text-sm">
+                        Application Tips
+                      </h4>
+                      <ul className="text-blue-800 text-sm mt-1 space-y-1">
+                        <li>
+                          • Highlight relevant experience and achievements
+                        </li>
+                        <li>
+                          • Mention specific skills that match the job
+                          requirements
+                        </li>
+                        <li>• Include quantifiable results when possible</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={isLoading}
+                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-lg font-semibold"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Submitting Application...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Submit Application
+                    </>
+                  )}
+                </Button>
+              </form>
+            </div>
           </div>
 
           {/* Job Summary */}
           <div>
-            <Card className="sticky top-8">
-              <CardHeader>
-                <CardTitle className="text-medium">{job.title}</CardTitle>
-                <CardDescription className="text-small">{job.company}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border-0 sticky top-8">
+              <div className="mb-6">
+                <div className="flex items-center mb-3">
+                  <Building className="h-5 w-5 text-gray-500 mr-2" />
+                  <span className="text-gray-600 font-medium">
+                    {job.company}
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  {job.title}
+                </h3>
+              </div>
+
+              <div className="space-y-6">
                 <div>
-                  <h4 className="text-small font-semibold mb-2">Required Skills</h4>
-                  <div className="flex flex-wrap gap-1">
+                  <h4 className="font-semibold text-gray-900 mb-3">
+                    Required Skills
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
                     {job.skills.map((skill, index) => (
                       <span
                         key={index}
-                        className="inline-block bg-secondary text-secondary-foreground px-2 py-1 rounded text-small"
+                        className="inline-block bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium border border-blue-200"
                       >
                         {skill}
                       </span>
                     ))}
                   </div>
                 </div>
+
                 <div>
-                  <h4 className="text-small font-semibold mb-2">Experience Level</h4>
-                  <p className="text-small text-muted-foreground">{job.experienceLevel}</p>
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    Experience Level
+                  </h4>
+                  <p className="text-gray-600">{job.experienceLevel}</p>
                 </div>
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <h4 className="text-small font-semibold mb-2">How it works</h4>
-                  <ol className="text-small text-muted-foreground space-y-1">
-                    <li>1. Enter your details</li>
-                    <li>2. Provide Gemini API key</li>
-                    <li>3. Paste your CV text</li>
-                    <li>4. AI analyzes your fit</li>
-                    <li>5. Get instant scoring</li>
+
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-xl border border-green-200">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <svg
+                      className="h-4 w-4 text-green-600 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Application Process
+                  </h4>
+                  <ol className="text-sm text-gray-700 space-y-2">
+                    <li className="flex items-center">
+                      <span className="bg-blue-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center mr-3 font-medium">
+                        1
+                      </span>
+                      Complete application form
+                    </li>
+                    <li className="flex items-center">
+                      <span className="bg-gray-300 text-gray-600 rounded-full text-xs w-5 h-5 flex items-center justify-center mr-3 font-medium">
+                        2
+                      </span>
+                      Initial review by HR team
+                    </li>
+                    <li className="flex items-center">
+                      <span className="bg-gray-300 text-gray-600 rounded-full text-xs w-5 h-5 flex items-center justify-center mr-3 font-medium">
+                        3
+                      </span>
+                      Interview with hiring manager
+                    </li>
+                    <li className="flex items-center">
+                      <span className="bg-gray-300 text-gray-600 rounded-full text-xs w-5 h-5 flex items-center justify-center mr-3 font-medium">
+                        4
+                      </span>
+                      Final decision & offer
+                    </li>
                   </ol>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </div>

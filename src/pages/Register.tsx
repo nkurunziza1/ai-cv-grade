@@ -20,7 +20,7 @@ const Register = () => {
     return <Navigate to="/" replace />;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
@@ -60,78 +60,74 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-large">Create Account</CardTitle>
-          <CardDescription className="text-small">
-            Sign up to get started with AI CV Grader
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-small">Full Name</Label>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-50 px-4">
+      <div className="w-full max-w-md">
+        <div className="bg-white p-10 rounded-3xl shadow-xl border-0">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Make the most of your professional life</h2>
+            <p className="text-gray-600">
+              Join AI CV Grader today
+            </p>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
               <Input
-                id="name"
                 type="text"
-                placeholder="John Doe"
+                placeholder="Full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="text-small"
+                className="h-12 border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition-colors text-base"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-small">Email</Label>
+            <div>
               <Input
-                id="email"
                 type="email"
-                placeholder="your@email.com"
+                placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="text-small"
+                className="h-12 border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition-colors text-base"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-small">Password</Label>
+            <div>
               <Input
-                id="password"
                 type="password"
-                placeholder="Create a password"
+                placeholder="Password (6+ characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="text-small"
+                className="h-12 border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition-colors text-base"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-small">Confirm Password</Label>
+            <div>
               <Input
-                id="confirmPassword"
                 type="password"
-                placeholder="Confirm your password"
+                placeholder="Confirm password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="text-small"
+                className="h-12 border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition-colors text-base"
               />
             </div>
-            <Button type="submit" className="w-full text-small" disabled={isLoading}>
-              {isLoading ? 'Creating account...' : 'Create Account'}
+            <Button 
+              type="submit" 
+              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-lg font-semibold text-base" 
+              disabled={isLoading}
+            >
+              {isLoading ? 'Creating account...' : 'Agree & Join'}
             </Button>
           </form>
-          <div className="mt-6 text-center">
-            <p className="text-small text-muted-foreground">
-              Already have an account?{' '}
-              <Link to="/login" className="text-primary hover:underline">
+          <div className="mt-8 text-center">
+            <p className="text-gray-600">
+              Already on AI CV Grader?{' '}
+              <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
                 Sign in
               </Link>
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
