@@ -479,106 +479,99 @@ const JobDetails = () => {
                 Candidate Scores & Rankings
               </h3>
             </div>
-            {(deadlineReached || sorted) ? (
-              loading ? (
-                <div className="text-center py-8 text-lg text-gray-600">Grading candidates with AI...</div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {graded.length === 0 ? (
-                    <div className="col-span-2 text-center text-gray-500 py-8">
-                      No applications have been graded yet.
-                    </div>
-                  ) : (
-                    graded.map((candidate) => (
-                      <div
-                        key={candidate.id}
-                        className="bg-white p-5 rounded-xl shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => handleViewApplicant(candidate)}
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center space-x-3">
-                            <div className="bg-gray-100 p-2 rounded-full">
-                              <User className="h-4 w-4 text-gray-600" />
-                            </div>
-                            <div>
-                              <h4 className="font-semibold text-gray-900">
-                                {candidate.applicantName}
-                              </h4>
-                              <p className="text-sm text-gray-500">
-                                {candidate.applicantEmail}
-                              </p>
-                            </div>
+            {/* Always show the Sort & Grade Now button for admins */}
+            <div className="flex justify-end mb-6">
+              <Button
+                onClick={fetchAndGradeApplications}
+                disabled={loading || applications.length === 0}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3"
+              >
+                {loading ? "Sorting..." : "Sort & Grade Now"}
+              </Button>
+            </div>
+            {loading ? (
+              <div className="text-center py-8 text-lg text-gray-600">Grading candidates with AI...</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {graded.length === 0 ? (
+                  <div className="col-span-2 text-center text-gray-500 py-8">
+                    No applications have been graded yet.
+                  </div>
+                ) : (
+                  graded.map((candidate) => (
+                    <div
+                      key={candidate.id}
+                      className="bg-white p-5 rounded-xl shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => handleViewApplicant(candidate)}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="bg-gray-100 p-2 rounded-full">
+                            <User className="h-4 w-4 text-gray-600" />
                           </div>
-                          <div className="text-right">
-                            <div
-                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getScoreColor(
-                                candidate.score
-                              )}`}
-                            >
-                              <span className="mr-1">
-                                {getScoreIcon(candidate.score)}
-                              </span>
-                              {candidate.score}%
-                            </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">
+                              {candidate.applicantName}
+                            </h4>
+                            <p className="text-sm text-gray-500">
+                              {candidate.applicantEmail}
+                            </p>
                           </div>
                         </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Experience:</span>
-                            <span className="font-medium">
-                              {candidate.experienceYears} years
+                        <div className="text-right">
+                          <div
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getScoreColor(
+                              candidate.score
+                            )}`}
+                          >
+                            <span className="mr-1">
+                              {getScoreIcon(candidate.score)}
                             </span>
+                            {candidate.score}%
                           </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Status:</span>
-                            <span className="font-medium text-gray-900">
-                              {candidate.status}
-                            </span>
-                          </div>
-                          <div className="text-sm">
-                            <span className="text-gray-600">Skills Match:</span>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {candidate.skillsMatch?.map((skill: string, index: number) => (
-                                <span
-                                  key={index}
-                                  className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs"
-                                >
-                                  {skill}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Applied:</span>
-                            <span className="text-gray-500">
-                              {new Date(candidate.appliedDate!).toLocaleDateString()}
-                            </span>
-                          </div>
-                          {candidate.summary && (
-                            <div className="bg-gray-50 p-2 rounded mt-2 text-xs text-gray-700">
-                              {candidate.summary}
-                            </div>
-                          )}
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
-              )
-            ) : (
-              <div className="text-center py-8 text-lg text-gray-600">
-                <div className="mb-4">The application deadline has not been reached yet.</div>
-                <Button
-                  onClick={fetchAndGradeApplications}
-                  disabled={loading || applications.length === 0}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3"
-                >
-                  {loading ? "Sorting..." : "Sort & Grade Now"}
-                </Button>
-                <div className="mt-4 text-sm text-gray-500">
-                  As an admin, you can sort and grade applications at any time.<br/>
-                  <span className="font-semibold text-purple-700">Guidance:</span> Wait for the deadline or click the button to sort and grade applicants using AI. The list will be sorted by score automatically.
-                </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Experience:</span>
+                          <span className="font-medium">
+                            {candidate.experienceYears} years
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Status:</span>
+                          <span className="font-medium text-gray-900">
+                            {candidate.status}
+                          </span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-gray-600">Skills Match:</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {candidate.skillsMatch?.map((skill: string, index: number) => (
+                              <span
+                                key={index}
+                                className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Applied:</span>
+                          <span className="text-gray-500">
+                            {new Date(candidate.appliedDate!).toLocaleDateString()}
+                          </span>
+                        </div>
+                        {candidate.summary && (
+                          <div className="bg-gray-50 p-2 rounded mt-2 text-xs text-gray-700">
+                            {candidate.summary}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             )}
             <div className="mt-4 text-xs text-gray-500">

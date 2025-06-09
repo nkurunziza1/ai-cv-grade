@@ -25,7 +25,7 @@ const Index = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                AI CV Grader
+                AI-Based-Document-verification
               </h1>
             </div>
             <div className="flex items-center space-x-3">
@@ -82,7 +82,7 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-cyan-600/10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
           <h2 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            AI-Powered CV Grading Platform
+            AI-Powered Document Verification Platform
           </h2>
           <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
             Streamline your recruitment process with intelligent CV analysis.
@@ -116,7 +116,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">
-              Powerful Features
+              Powerful Features of our ai
             </h3>
             <p className="text-lg text-gray-600">
               Everything you need to manage recruitment efficiently
